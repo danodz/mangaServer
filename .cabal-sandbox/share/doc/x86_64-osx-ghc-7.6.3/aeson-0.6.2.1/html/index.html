@@ -1,0 +1,38 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>aeson-0.6.2.1: Fast JSON parsing and encoding</title><link href="ocean.css" rel="stylesheet" type="text/css" title="Ocean" /><script src="haddock-util.js" type="text/javascript"></script><script type="text/javascript">//<![CDATA[
+window.onload = function () {pageLoad();};
+//]]>
+</script></head><body><div id="package-header"><ul class="links" id="page-menu"><li><a href="index.html">Contents</a></li><li><a href="doc-index.html">Index</a></li></ul><p class="caption">aeson-0.6.2.1: Fast JSON parsing and encoding</p></div><div id="content"><div id="description"><h1>aeson-0.6.2.1: Fast JSON parsing and encoding</h1><div class="doc"><p>A JSON parsing and encoding library optimized for ease of use
+and high performance.
+</p><p>To get started, see the documentation for the <code>Data.Aeson</code> module
+below.
+</p><p>For release notes, see
+<a href="https://github.com/bos/aeson/blob/master/release-notes.markdown">https://github.com/bos/aeson/blob/master/release-notes.markdown</a>
+</p><p>Parsing performance on a late 2010 MacBook Pro (2.66GHz Core i7),
+for mostly-English tweets from Twitter's JSON search API:
+</p><ul><li> 0.8 KB, 32-bit GHC 6.12.3: 30538 msg/sec (24.9 MB/sec)
+</li><li> 0.8 KB, 64-bit GHC 7.0.3: 31204 msg/sec (25.4 MB/sec)
+</li><li> 6.4 KB, 32-bit GHC 6.12.3: 6731 msg/sec (42.3 MB/sec)
+</li><li> 6.4 KB, 64-bit GHC 7.0.3: 6627 msg/sec (41.7 MB/sec)
+</li><li> 11.8 KB, 32-bit GHC 6.12.3: 3751 msg/sec (43.2 MB/sec)
+</li><li> 11.8 KB, 64-bit GHC 7.0.3: 3381 msg/sec (38.9 MB/sec)
+</li><li> 31.2 KB, 32-bit GHC 6.12.3: 1306 msg/sec (39.8 MB/sec)
+</li><li> 31.2 KB, 64-bit GHC 7.0.3: 1132 msg/sec (34.5 MB/sec)
+</li><li> 61.5 KB, 32-bit GHC 6.12.3: 616 msg/sec (37.0 MB/sec)
+</li><li> 61.5 KB, 64-bit GHC 7.0.3: 534 msg/sec (32.1 MB/sec)
+</li></ul><p>Handling heavily-escaped text is a little more work.  Here is
+parsing performance with Japanese tweets, where much of the text
+is entirely Unicode-escaped.
+</p><ul><li> 14.6 KB, 32-bit GHC 6.12.3: 2315 msg/sec (33.1 MB/sec)
+</li><li> 14.6 KB, 64-bit GHC 7.0.3: 1986 msg/sec (28.4 MB/sec)
+</li><li> 44.1 KB, 32-bit GHC 6.12.3: 712 msg/sec (30.7 MB/sec)
+</li><li> 44.1 KB, 64-bit GHC 7.0.3: 634 msg/sec (27.3 MB/sec)
+</li><li> 82.9 KB, 32-bit GHC 6.12.3: 377 msg/sec (30.5 MB/sec)
+</li><li> 82.9 KB, 64-bit GHC 7.0.3: 332 msg/sec (26.9 MB/sec)
+</li></ul><p>Encoding performance on the same machine and data:
+</p><ul><li> English, 854 bytes: 43439 msg/sec (35.4 MB/sec)
+</li><li> English, 6.4 KB: 7127 msg/sec (44.8 MB/sec)
+</li><li> Engish, 61.5 KB: 765 msg/sec (46.0 MB/sec)
+</li><li> Japanese, 14.6 KB: 4727 msg/sec (67.5 MB/sec)
+</li><li> Japanese, 44.1 KB: 1505 msg/sec (64.8 MB/sec)
+</li></ul><p>(A note on naming: in Greek mythology, Aeson was the father of Jason.)
+</p></div></div><div id="module-list"><p class="caption">Modules</p><ul><li><span id="control.n.1" class="module collapser" onclick="toggleSection('n.1')">Data</span><ul id="section.n.1" class="show"><li><span class="module"><span id="control.n.1.1" class="collapser" onclick="toggleSection('n.1.1')">&nbsp;</span><a href="Data-Aeson.html">Data.Aeson</a></span><ul id="section.n.1.1" class="show"><li><span class="module"><a href="Data-Aeson-Encode.html">Data.Aeson.Encode</a></span></li><li><span class="module"><a href="Data-Aeson-Generic.html">Data.Aeson.Generic</a></span></li><li><span class="module"><a href="Data-Aeson-Parser.html">Data.Aeson.Parser</a></span></li><li><span class="module"><a href="Data-Aeson-TH.html">Data.Aeson.TH</a></span></li><li><span class="module"><a href="Data-Aeson-Types.html">Data.Aeson.Types</a></span></li></ul></li></ul></li></ul></div></div><div id="footer"><p>Produced by <a href="http://www.haskell.org/haddock/">Haddock</a> version 2.13.2</p></div></body></html>

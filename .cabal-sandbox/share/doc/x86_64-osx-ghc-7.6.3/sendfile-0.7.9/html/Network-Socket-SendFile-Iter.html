@@ -1,0 +1,63 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>Network.Socket.SendFile.Iter</title><link href="ocean.css" rel="stylesheet" type="text/css" title="Ocean" /><script src="haddock-util.js" type="text/javascript"></script><script type="text/javascript">//<![CDATA[
+window.onload = function () {pageLoad();setSynopsis("mini_Network-Socket-SendFile-Iter.html");};
+//]]>
+</script></head><body><div id="package-header"><ul class="links" id="page-menu"><li><a href="index.html">Contents</a></li><li><a href="doc-index.html">Index</a></li></ul><p class="caption">sendfile-0.7.9: A portable sendfile library</p></div><div id="content"><div id="module-header"><table class="info"><tr><th>Safe Haskell</th><td>Safe-Inferred</td></tr></table><p class="caption">Network.Socket.SendFile.Iter</p></div><div id="synopsis"><p id="control.syn" class="caption expander" onclick="toggleSection('syn')">Synopsis</p><ul id="section.syn" class="hide" onclick="toggleSection('syn')"><li class="src short"><span class="keyword">data</span>  <a href="#t:Iter">Iter</a> <ul class="subs"><li>= <a href="#v:Sent">Sent</a> <a href="file:///Library/Frameworks/GHC.framework/Versions/7.6.3-x86_64/usr/share/doc/ghc/html/libraries/base-4.6.0.1/Data-Int.html#t:Int64">Int64</a> (<a href="file:///Library/Frameworks/GHC.framework/Versions/7.6.3-x86_64/usr/share/doc/ghc/html/libraries/base-4.6.0.1/System-IO.html#t:IO">IO</a> <a href="Network-Socket-SendFile-Iter.html#t:Iter">Iter</a>)  </li><li>| <a href="#v:WouldBlock">WouldBlock</a> <a href="file:///Library/Frameworks/GHC.framework/Versions/7.6.3-x86_64/usr/share/doc/ghc/html/libraries/base-4.6.0.1/Data-Int.html#t:Int64">Int64</a> <a href="file:///Library/Frameworks/GHC.framework/Versions/7.6.3-x86_64/usr/share/doc/ghc/html/libraries/base-4.6.0.1/System-Posix-Types.html#t:Fd">Fd</a> (<a href="file:///Library/Frameworks/GHC.framework/Versions/7.6.3-x86_64/usr/share/doc/ghc/html/libraries/base-4.6.0.1/System-IO.html#t:IO">IO</a> <a href="Network-Socket-SendFile-Iter.html#t:Iter">Iter</a>)  </li><li>| <a href="#v:Done">Done</a> <a href="file:///Library/Frameworks/GHC.framework/Versions/7.6.3-x86_64/usr/share/doc/ghc/html/libraries/base-4.6.0.1/Data-Int.html#t:Int64">Int64</a>  </li></ul></li><li class="src short"><a href="#v:runIter">runIter</a> :: <a href="file:///Library/Frameworks/GHC.framework/Versions/7.6.3-x86_64/usr/share/doc/ghc/html/libraries/base-4.6.0.1/System-IO.html#t:IO">IO</a> <a href="Network-Socket-SendFile-Iter.html#t:Iter">Iter</a> -&gt; <a href="file:///Library/Frameworks/GHC.framework/Versions/7.6.3-x86_64/usr/share/doc/ghc/html/libraries/base-4.6.0.1/System-IO.html#t:IO">IO</a> <a href="file:///Library/Frameworks/GHC.framework/Versions/7.6.3-x86_64/usr/share/doc/ghc/html/libraries/base-4.6.0.1/Data-Int.html#t:Int64">Int64</a></li></ul></div><div id="interface"><h1>Documentation</h1><div class="top"><p class="src"><span class="keyword">data</span>  <a name="t:Iter" class="def">Iter</a>  </p><div class="doc"><p>An iteratee for sendfile
+</p><p>In general, a whole file is not sent by a single call to
+ sendfile(), but a series of calls which send successive pieces.
+</p><p>The high-level API in this sendfile library has calls which will
+ send the entire file (or an entire requested offset+length), before
+ returning.
+</p><p>However, there are instances where you want to be a bit more
+ involved in the sending loop. For example, if you want to tickle a
+ timeout after each chunk is sent or update a progress bar.
+</p><p>The <code><a href="Network-Socket-SendFile-Iter.html#t:Iter">Iter</a></code> type gives you that power with out requiring you to
+ manage all the low-level details of the sendfile loop. The
+ interface is simple and consistant across all platforms.
+</p><p>A call to sendfile() can result in three different states:
+</p><ol><li> the requested number of bytes for that iteration was sent
+  successfully, there are more bytes left to send.
+</li><li> some (possibly 0) bytes were sent, but the file descriptor
+  would now block if more bytes were written. There are more bytes
+  left to send.
+</li><li> All the bytes were sent, and there is nothing left to send.
+</li></ol><p>We handle these three cases by using a type with three
+ constructors:
+</p><pre>
+  data Iter
+      = Sent       Int64    (IO Iter)
+      | WouldBlock Int64 Fd (IO Iter)
+      | Done       Int64             
+</pre><p>All three constructors provide an <code><a href="file:///Library/Frameworks/GHC.framework/Versions/7.6.3-x86_64/usr/share/doc/ghc/html/libraries/base-4.6.0.1/Data-Int.html#t:Int64">Int64</a></code> which represents the
+ number of bytes sent for that particular iteration. (Not the total
+ byte count).
+</p><p>The <code><a href="Network-Socket-SendFile-Iter.html#v:Sent">Sent</a></code> and <code><a href="Network-Socket-SendFile-Iter.html#v:WouldBlock">WouldBlock</a></code> constructors provide <code><a href="file:///Library/Frameworks/GHC.framework/Versions/7.6.3-x86_64/usr/share/doc/ghc/html/libraries/base-4.6.0.1/System-IO.html#t:IO">IO</a></code> <code><a href="Network-Socket-SendFile-Iter.html#t:Iter">Iter</a></code> as their
+ final argument. Running this IO action will send the next block of
+ data.
+</p><p>The <code><a href="Network-Socket-SendFile-Iter.html#v:WouldBlock">WouldBlock</a></code> constructor also provides the <code><a href="file:///Library/Frameworks/GHC.framework/Versions/7.6.3-x86_64/usr/share/doc/ghc/html/libraries/base-4.6.0.1/System-Posix-Types.html#t:Fd">Fd</a></code> for the output
+ socket. You should not send anymore data until the <code><a href="file:///Library/Frameworks/GHC.framework/Versions/7.6.3-x86_64/usr/share/doc/ghc/html/libraries/base-4.6.0.1/System-Posix-Types.html#t:Fd">Fd</a></code> would not
+ block. The easiest way to do that is to use <code><a href="file:///Library/Frameworks/GHC.framework/Versions/7.6.3-x86_64/usr/share/doc/ghc/html/libraries/base-4.6.0.1/Control-Concurrent.html#v:threadWaitWrite">threadWaitWrite</a></code> to
+ suspend the thread until the <code><a href="file:///Library/Frameworks/GHC.framework/Versions/7.6.3-x86_64/usr/share/doc/ghc/html/libraries/base-4.6.0.1/System-Posix-Types.html#t:Fd">Fd</a></code> is available.
+</p><p>A very simple function to drive the Iter might look like:
+</p><pre>
+ runIter :: IO Iter -&gt; IO ()
+ runIter iter =
+    do r &lt;- iter
+       case r of
+         (Done _n)      -&gt; return ()
+         (Sent _n cont) -&gt; runIter cont
+         (WouldBlock _n fd cont) -&gt; 
+             do threadWaitWrite fd
+                runIter cont
+</pre><p>You would use it as the first argument to a *IterWith function, e.g.
+</p><pre>
+  sendFileIterWith runIter outputSocket &quot;/path/to/file&quot; 2^16 
+</pre><p>The <code><a href="Network-Socket-SendFile-Iter.html#v:runIter">runIter</a></code> function provided by this module is similar, but also returns the total number of bytes sent.
+</p><p>NOTE: You must not use the <code><a href="file:///Library/Frameworks/GHC.framework/Versions/7.6.3-x86_64/usr/share/doc/ghc/html/libraries/base-4.6.0.1/System-Posix-Types.html#t:Fd">Fd</a></code> or the <code><a href="file:///Library/Frameworks/GHC.framework/Versions/7.6.3-x86_64/usr/share/doc/ghc/html/libraries/base-4.6.0.1/System-IO.html#t:IO">IO</a></code> <code><a href="Network-Socket-SendFile-Iter.html#t:Iter">Iter</a></code> after the call
+ to *IterWith has returned. When the *IterWith functions return,
+ the file descriptors may be closed due to finalizers running.
+</p></div><div class="subs constructors"><p class="caption">Constructors</p><table><tr><td class="src"><a name="v:Sent" class="def">Sent</a> <a href="file:///Library/Frameworks/GHC.framework/Versions/7.6.3-x86_64/usr/share/doc/ghc/html/libraries/base-4.6.0.1/Data-Int.html#t:Int64">Int64</a> (<a href="file:///Library/Frameworks/GHC.framework/Versions/7.6.3-x86_64/usr/share/doc/ghc/html/libraries/base-4.6.0.1/System-IO.html#t:IO">IO</a> <a href="Network-Socket-SendFile-Iter.html#t:Iter">Iter</a>)</td><td class="doc"><p>number of bytes sent this pass and a continuation to send more
+</p></td></tr><tr><td class="src"><a name="v:WouldBlock" class="def">WouldBlock</a> <a href="file:///Library/Frameworks/GHC.framework/Versions/7.6.3-x86_64/usr/share/doc/ghc/html/libraries/base-4.6.0.1/Data-Int.html#t:Int64">Int64</a> <a href="file:///Library/Frameworks/GHC.framework/Versions/7.6.3-x86_64/usr/share/doc/ghc/html/libraries/base-4.6.0.1/System-Posix-Types.html#t:Fd">Fd</a> (<a href="file:///Library/Frameworks/GHC.framework/Versions/7.6.3-x86_64/usr/share/doc/ghc/html/libraries/base-4.6.0.1/System-IO.html#t:IO">IO</a> <a href="Network-Socket-SendFile-Iter.html#t:Iter">Iter</a>)</td><td class="doc"><p>number of bytes sent, Fd that blocked, continuation to send more. NOTE: The Fd should not be used outside the running of the Iter as it may be freed when the Iter is done
+</p></td></tr><tr><td class="src"><a name="v:Done" class="def">Done</a> <a href="file:///Library/Frameworks/GHC.framework/Versions/7.6.3-x86_64/usr/share/doc/ghc/html/libraries/base-4.6.0.1/Data-Int.html#t:Int64">Int64</a></td><td class="doc"><p>number of bytes sent, no more to send
+</p></td></tr></table></div></div><div class="top"><p class="src"><a name="v:runIter" class="def">runIter</a> :: <a href="file:///Library/Frameworks/GHC.framework/Versions/7.6.3-x86_64/usr/share/doc/ghc/html/libraries/base-4.6.0.1/System-IO.html#t:IO">IO</a> <a href="Network-Socket-SendFile-Iter.html#t:Iter">Iter</a> -&gt; <a href="file:///Library/Frameworks/GHC.framework/Versions/7.6.3-x86_64/usr/share/doc/ghc/html/libraries/base-4.6.0.1/System-IO.html#t:IO">IO</a> <a href="file:///Library/Frameworks/GHC.framework/Versions/7.6.3-x86_64/usr/share/doc/ghc/html/libraries/base-4.6.0.1/Data-Int.html#t:Int64">Int64</a></p><div class="doc"><p>A simple function to drive the *IterWith functions.
+ It returns the total number of bytes sent.
+</p></div></div></div></div><div id="footer"><p>Produced by <a href="http://www.haskell.org/haddock/">Haddock</a> version 2.13.2</p></div></body></html>
