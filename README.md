@@ -3,4 +3,4 @@ This project brought me to learn about Haskell, Happstack and couchdb. At the be
 
 The mangaUpdate directory contains a Google Chrome extension showing how many unread mangas remains. The popup contains the list of manga.
 
-It fetches the images on mangafox.me and I take no credit for the images.
+It fetches the images on mangafox.me and I take no credit for them.
