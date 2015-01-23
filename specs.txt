@@ -1,0 +1,38 @@
+[context] (optional)
+
+manga : Affiche une liste des mangas suivis
+		Compare le nombre de chapitre lu et le nombre de chapitre existants
+        Boite de texte permettant d'ajouter des manga
+
+manga/[name] : Affiche la liste des chapitres du manga
+               Indique si le chapitre à été lu ou non
+               Liens pour lire chaque chapitre individuellement
+               Liens pour lire en continu a partir d'un chapitre
+               Bouton pour toggle lu/non-lu d'un chapitre
+
+chapter/[manga](?chapter=numéro) : Permet de lire un chapitre d'un manga
+                                   Lien vers le prochain chapitre (Marque le chapitre actuel comme lu)
+                                   Lien vers le chapitre précédent
+                                   Lien pour retourner au manga
+                                   Lien pour retourner aux mangas
+
+continuous/manga(?from=chapter) : Permet de lire en continu
+                                  Défini un chapitre comme lu lorsque dépassé (Dans le scroll).
+                                  Bouton pour changer l'état lu/non-lu du chapitre
+
+
+Fonctionnalité :
+
+Mettre les mangas à jour périodiquement
+
+Ajouter un manga extraire le nom et écrire tous les chapitres actuels dans couch
+Obtenir la liste des mangas suivis
+Obtenir le nombre de chapitres lus (par manga)
+Obtenir le nombre de chapitres existants (par manga)
+
+Obtenir la liste des chapitres (par manga)
+Obtenir l'état lu/non-lu d'un chapitre
+Changer l'état lu/non-lu d'un chapitre
+
+Obtenir la liste d'images d'un chapitre de couch
+Générer le HTML pour les images d'un chapitre (Utilisé dans différents contextes)

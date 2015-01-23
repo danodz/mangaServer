@@ -1,0 +1,21 @@
+{
+    "manifest_version": 2,
+
+    "name": "Manga Update",
+    "description": "Checks manga updates",
+    "version": "1.0",
+    "permissions":
+    [
+        "activeTab"
+    ],
+    "browser_action": 
+    {
+        "default_icon": "icon.png",
+        "default_popup" : "popup.html"
+    },
+    "background":
+    {
+        "scripts": ["background.js"],
+        "persistent": true
+    }
+}
