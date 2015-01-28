@@ -39,9 +39,13 @@ htmlTemplate title body =
             H.title $ H.toHtml title
         H.body body
 
-getManga :: String -> IO String
-getManga name =
-    Network.HTTP.simpleHTTP (getRequest $ "http://mangafox.me/manga/" ++ name) >>= getResponseBody
+getManga :: String -> IO (Maybe String)
+getManga name = do
+--    Network.HTTP.simpleHTTP (getRequest $ "http://mangafox.me/manga/" ++ name) >>= getResponseBody
+    answer <- maybeHTTP ("http://mangafox.me/manga/" ++ name) 10
+    case answer of
+        Nothing -> return Nothing
+        _ -> return answer
 
 getChapterDoc :: String -> IO (Maybe Chapter)
 getChapterDoc id = ( couchGet $ "manga/" ++ (replace "/" "%2F" id) ) :: IO (Maybe Chapter)
@@ -172,14 +176,18 @@ updateManga doc =
       updateManga' localList name = do
           print name
           manga <- getManga name
-          ( mapM (\x -> forkIO $ appendChapter name x ) ) $
-              ( chapterList manga name \\ localList )
-          return ()
+
+          case manga of
+              Nothing -> return ()
+              _ -> do
+                  ( mapM (\x -> forkIO $ appendChapter name x ) ) $
+                      ( chapterList ( fromJust manga ) name \\ localList )
+                  return ()
 
 newMangaHandler :: String -> ServerPartT IO HS.Response
 newMangaHandler name = do
     mangaPage <- liftIO $ getManga name
-    checkAnswer <- liftIO $ pageCheck mangaPage name
+    checkAnswer <- liftIO $ pageCheck ( fromJust mangaPage ) name
     ok $ toResponse $
         htmlTemplate "mangaAnswer" $
             H.toHtml checkAnswer
