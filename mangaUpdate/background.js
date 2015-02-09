@@ -2,14 +2,21 @@ function countNew(page)
 {
     total = 0;
 
-    workPage = page.split('<body><div><input class="newManga"><button onclick="submitNew()">Submit</button></div><div>')[1].split("(");
-    workPage.splice(0,1);
-    workPage.map(function(x,y)
-    {
-        total += parseInt(x.split(")")[0])
-    });
+    workPage = document.createElement("DIV");
 
-    return total
+    $(workPage).html(page);
+
+    mangas = $(workPage).children("div").children(".mangaDiv");
+
+    for(var i = 0; i < mangas.length; i++)
+    {
+        if($(mangas[i]).children(".toggleIgnore").attr("onclick").split("'")[3] == "True")
+        {
+            total += parseInt( $(mangas[i]).children(".mangaPres").attr("class").split(" ")[1] );
+        }
+    }
+
+    return total;
 }
 
 function update()
@@ -19,8 +26,8 @@ function update()
     try
     {
         ajax.send();
-        nbNew = countNew(ajax.responseText);
         mangaPage = ajax.responseText
+        nbNew = countNew(ajax.responseText);
         chrome.browserAction.setBadgeText({text: String(nbNew)});
     } catch(e)
     {
