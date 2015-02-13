@@ -1,0 +1,10 @@
+{
+   "_id": "_design/manga",
+   "_rev": "0-00000000000000000000000000000000",
+   "language": "javascript",
+   "views": {
+       "nameToIgnore": {
+           "map": "function(doc) {\n  emit(doc._id, doc.ignore);\n}"
+       }
+   }
+}

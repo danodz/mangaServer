@@ -12,6 +12,7 @@ import System.IO.Unsafe
 import Data.Maybe
 import Control.Applicative ((<$>), (<*>), optional)
 import Control.Concurrent (forkIO, threadDelay)
+import Control.Exception
 import Happstack.Server (ServerPart, nullConf, simpleHTTP, ok, dir, path, seeOther)
 import Happstack.Server as HS
 import Data.List
@@ -30,6 +31,7 @@ import MangafoxParser
 import ChapterDocument as CD
 import ChapterListDocument as CID
 import MangaDocument as MD
+import MangaView as MV
 import Utils
 
 htmlTemplate :: String -> H.Html -> H.Html
@@ -48,41 +50,13 @@ getManga name = do
         _ -> return answer
 
 getChapterDoc :: String -> IO (Maybe Chapter)
-getChapterDoc id = ( couchGet $ "manga/" ++ (replace "/" "%2F" id) ) :: IO (Maybe Chapter)
-
---getChapter :: String -> String -> Int -> String
---getChapter html name index
---    | index < 0 = (chapterList html name) !! 0
---    | index > ( length $ chapterList html name ) = (chapterList html name) !! ( ( length $ chapterList html name ) - 1 )
---    | otherwise = (chapterList html name) !! index
---
---viewChapterOld :: String -> ServerPartT IO HS.Response
---viewChapterOld name = do
---    chapter <- optional $ look "chapter"
---    manga <- liftIO $ getManga name
---    mangaHtml <- liftIO $ getManga name
---    viewChapterOld' name chapter manga ( length $ chapterList mangaHtml name )
---        where
---            viewChapterOld' :: String -> Maybe String -> String -> Int -> ServerPartT IO HS.Response
---            viewChapterOld' name chapter manga chapterCount
---                | ( read $ fromMaybe "0" chapter ) < 0 = seeOther (name ++ "?chapter=0") $ toResponse ()
---                | ( read $ fromMaybe "0" chapter ) > chapterCount - 1 = do
---                    seeOther (name ++ "?chapter=" ++ ( show $ chapterCount - 1 )) $ toResponse ()
---                | otherwise = do
---                    images <- liftIO $ chapterImages name ( getChapter manga name $ read $ fromMaybe "0" chapter ) []
---                    ok $ toResponse $
---                        htmlTemplate "Manga reader" $ do
---                            H.div $ do
---                                forM_ images ( \x ->
---                                    H.img ! A.src ( stringValue x ) )
---                            H.a ! A.href ( stringValue $ name ++ "?chapter=" ++ (show $ (read $ fromMaybe "0" chapter) - 1 ) ) $
---                                ( H.toHtml ("next chapter" :: String) )
+getChapterDoc id = ( couchGet $ "chapters/" ++ (replace "/" "%2F" id) ) :: IO (Maybe Chapter)
 
 viewChapter :: String -> ServerPartT IO HS.Response
 viewChapter name = do
     chapter <- look "chapter"
-    chapterDoc <- liftIO ( (C.couchGet $ "manga/" ++ (replace "/" "%2F" chapter)) :: IO (Maybe CD.Chapter) )
-    chapters <- liftIO (C.couchGet $ "manga/_design/chapter/_view/mangaToChapter?key=%22" ++ name ++ "%22" :: IO (Maybe CD.MangaChapterRows))
+    chapterDoc <- liftIO ( (C.couchGet $ "chapters/" ++ (replace "/" "%2F" chapter)) :: IO (Maybe CD.Chapter) )
+    chapters <- liftIO (C.couchGet $ "chapters/_design/chapter/_view/mangaToChapter?key=%22" ++ name ++ "%22" :: IO (Maybe CD.MangaChapterRows))
     void $ liftIO $ changeIsRead chapter True
     ok $ toResponse $
         htmlTemplate "Manga reader" $ do
@@ -92,7 +66,8 @@ viewChapter name = do
             H.a ! ( A.href $ stringValue "/manga/" ) $ H.toHtml ( "Back to all manga" :: String )
             H.div $ do
                 forM_ (CD.pages $ fromJust chapterDoc) ( \x ->
-                    H.img ! A.src ( stringValue $ init $ tail $ show x ) )
+                    H.div $ do
+                        H.img ! A.src ( stringValue $ init $ tail $ show x ) )
             navLink "Previous" $ maybeListGet ( CD.rows $ fromJust chapters ) $ ( fromJust $ elemIndex (MangaToChapter (CD._id $ fromJust chapterDoc) (pack name) (fromJust chapterDoc)) $ CD.rows $ fromJust chapters ) - 1
             navLink "Next" $ maybeListGet ( CD.rows $ fromJust chapters ) $ ( fromJust $ elemIndex (MangaToChapter (CD._id $ fromJust chapterDoc) (pack name) (fromJust chapterDoc)) $ CD.rows $ fromJust chapters ) + 1
             H.a ! ( A.href $ stringValue $ "/manga/" ++ name ) $ H.toHtml $ "Back to " ++ name
@@ -105,7 +80,7 @@ viewChapter name = do
 
 mangaPage :: String -> ServerPartT IO HS.Response
 mangaPage name = do
-    chapters <- liftIO (C.couchGet $ "manga/_design/chapter/_view/mangaToChapter?key=%22" ++ name ++ "%22" :: IO (Maybe CD.MangaChapterRows))
+    chapters <- liftIO (C.couchGet $ "chapters/_design/chapter/_view/mangaToChapter?key=%22" ++ name ++ "%22" :: IO (Maybe CD.MangaChapterRows))
     ok $ toResponse $
         H.html $ do
             H.head $ do
@@ -136,7 +111,9 @@ mangaPage name = do
 
 allMangasPage :: ServerPartT IO HS.Response
 allMangasPage = do
-    mangaList <- liftIO (C.couchGet "manga/_design/chapter/_view/mangaToCount?group=true" :: IO (Maybe MD.MangaCountRows))
+    mangaList <- liftIO (C.couchGet "chapters/_design/chapter/_view/mangaToCount?group=true" :: IO (Maybe MV.MangaCountRows))
+    mangaIgnore <- liftIO nameToIgnore
+
     addHeaderM "Access-Control-Allow-Origin" "*"
     ok $ toResponse $
         H.html $ do
@@ -148,21 +125,38 @@ allMangasPage = do
                 H.div $ do
                     H.input ! A.class_ "newManga"
                     H.button "Submit" ! A.onclick "submitNew()"
-                mangaDiv $ filter (\x -> ( MD.unread $ MD.value x ) /= 0) $ MD.rows $ fromJust $ mangaList 
+                mangaDiv mangaIgnore $ filter (\x -> ( MV.unread $ MV.value x ) /= 0) $ MV.rows $ fromJust $ mangaList 
                 H.br
-                mangaDiv $ filter (\x -> ( MD.unread $ MD.value x ) == 0) $ MD.rows $ fromJust $ mangaList 
+                mangaDiv mangaIgnore $ filter (\x -> ( MV.unread $ MV.value x ) == 0) $ MV.rows $ fromJust $ mangaList 
     where
-      mangaDiv mangaList = 
+      mangaDiv mangaIgnore mangaList = 
           H.div $ do
               forM_ ( mangaList ) (\x -> 
-                  H.div $ do
-                      H.a ! A.href ( stringValue $ "/manga/" ++ (unpack $ MD.key x) ) $
-                          H.toHtml $ (unpack $ MD.key x) ++ " : " ++ (show $ MD.total $ MD.value x) ++ " (" ++ (show $ MD.unread $ MD.value x) ++ ")")
+                  H.div ! ( A.class_ $ stringValue $ "mangaDiv " ++ ( unpack $ MV.key x ) ) $ do
+                      H.a ! A.class_ ( stringValue $ "mangaPres " ++ (show $ MV.unread $ MV.value x) ) ! A.href ( stringValue $ "/manga/" ++ (unpack $ MV.key x) ) $
+                          H.toHtml $ (unpack $ MV.key x) ++ " : " ++ (show $ MV.total $ MV.value x) ++ " (" ++ (show $ MV.unread $ MV.value x) ++ ")"
+                      ignoreLink
+                          ( ignoredManga mangaIgnore $ unpack $ MV.key x )
+                          ( unpack $ MV.key x) )
+                      
+      ignoredManga :: [NameToIgnore] -> String -> Bool
+      ignoredManga list name =  ignoredManga' $ listToMaybe $ filter (\x -> (unpack $ MD.key x) == name) list
+
+      ignoredManga' :: Maybe NameToIgnore -> Bool
+      ignoredManga' Nothing = False
+      ignoredManga' ignore = MD.value $ fromJust ignore
+
+      ignoreLink :: Bool -> String -> H.Html
+      ignoreLink ignored name = do
+          H.a ! A.class_ "toggleIgnore" ! A.onclick ( stringValue $ "toggleIgnore('" ++ name ++ "', '" ++ ( show $ not ignored ) ++ "')" ) $ 
+            H.toHtml $ case ignored of
+                True -> "Ignoré" :: String
+                False -> "N'est pas ignoré" :: String
           
 
 updateMangas :: IO ()
 updateMangas = forever $ do
-    localList <- liftIO ( couchGet "manga/_design/chapter/_view/mangaToChapterList?group=true"  :: IO (Maybe CID.ChapterListRows) )
+    localList <- liftIO ( couchGet "chapters/_design/chapter/_view/mangaToChapterList?group=true"  :: IO (Maybe CID.ChapterListRows) )
     print "###########################  UPDATING  ###########################"
     void $ liftIO $ mapM_ updateManga $ CID.rows $ fromJust localList
     threadDelay 1800000000
@@ -203,6 +197,7 @@ newMangaHandler name = do
 addNewMangaCouch :: String -> String -> IO String
 addNewMangaCouch page name = do
     forkIO $ fillChapters page name
+    C.couchPut "manga" $ encode $ MD.MangaDoc {MD._id = pack name, MD._rev = C.emptyRev, ignore = False, src = "mangafox"}
     return ("Manga found" :: String)
 
 fillChapters :: String -> String -> IO ()
@@ -215,13 +210,13 @@ appendChapter mangaName firstPage = do
     print $ mangaName ++ " : " ++ firstPage
     chapter <- makeChapter mangaName firstPage
     print chapter
-    C.couchPut "manga" $ encode chapter
+    C.couchPut "chapters" $ encode chapter
     return ()
 
 changeIsRead :: String -> Bool -> IO ()
 changeIsRead chapterId value = do
     doc <- getChapterDoc chapterId
-    C.couchPut "manga" $ encode $ (fromJust doc) { isRead = value }
+    C.couchPut "chapters" $ encode $ (fromJust doc) { isRead = value }
     return ()
 
 changeRead :: ServerPartT IO HS.Response
@@ -230,16 +225,41 @@ changeRead = do
     liftIO $ mapM_ (\(x,y) -> changeIsRead x y) $ ( read changeList :: [(String,Bool)] )
     ok $ toResponse $ ("OK" :: String)
 
+ignoreMangaChange :: String -> ServerPartT IO HS.Response
+ignoreMangaChange name = do
+    value <- look "value"
+    void $ liftIO $ toggleIgnoreManga name (read value :: Bool)
+
+    addHeaderM "Access-Control-Allow-Origin" "*"
+    ok $ toResponse $
+        htmlTemplate "toggle" $
+            H.toHtml ( "ok" :: String )
+
+
+toggleIgnoreManga :: String -> Bool -> IO ()
+toggleIgnoreManga name value = do
+    doc <- catch
+        ( ( C.couchGet $ "manga/" ++ name ) :: IO (Maybe MangaDoc) )
+        ( \(SomeException e) -> return Nothing)
+
+    C.couchPut "manga" $ encode $ newMangaDoc doc name value
+    return ()
+
+    where
+      newMangaDoc :: Maybe MangaDoc -> String -> Bool -> MangaDoc
+      newMangaDoc Nothing name value = MangaDoc {MD._id = pack name, MD._rev = C.emptyRev, ignore = value, src = "mangafox"}
+      newMangaDoc doc name value = (fromJust doc) { ignore = value }
+
 main = do 
     forkIO $ updateMangas
     Happstack.Server.simpleHTTP nullConf $
         msum
         [
-         dir "chapter" $ path $ viewChapter
-        ,dir "manga" $ path $ mangaPage
-        ,dir "manga" $ allMangasPage
-        ,dir "addManga" $ path $ newMangaHandler
-        ,dir "changeRead" $ changeRead
-        ,dir "files" $ serveDirectory DisableBrowsing [] "files"
---       ,dir "oldChapter" $ path $ viewChapterOld
+            dir "chapter" $ path $ viewChapter
+          , dir "toggleIgnore" $ path $ ignoreMangaChange
+          , dir "manga" $ path $ mangaPage
+          , dir "manga" $ allMangasPage
+          , dir "addManga" $ path $ newMangaHandler
+          , dir "changeRead" $ changeRead
+          , dir "files" $ serveDirectory DisableBrowsing [] "files"
         ]
