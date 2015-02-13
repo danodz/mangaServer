@@ -13,8 +13,13 @@ import Network.CGI (liftIO)
 import Network.HTTP
 import CouchUtils
 
+<<<<<<< HEAD
 import MangaDocument as MD
 import ChapterDocument as CD
+=======
+import MangaDocument
+import ChapterDocument
+>>>>>>> 6c80267a0aa1d81bc3bce763ff5f9b2cb0002211
 import Utils
 
 baseUrl :: String
@@ -62,8 +67,13 @@ chapterImages manga url imgs
 makeChapter :: String -> String -> IO Chapter
 makeChapter manga firstPage = do
     images <- chapterImages manga firstPage []
+<<<<<<< HEAD
     return Chapter { CD._id = pack $ firstPage
                    , CD._rev = emptyRev
+=======
+    return Chapter { _id = pack $ firstPage
+                   , _rev = emptyRev
+>>>>>>> 6c80267a0aa1d81bc3bce763ff5f9b2cb0002211
                    , manga = pack manga
                    , pages = map pack images
                    , isRead = False

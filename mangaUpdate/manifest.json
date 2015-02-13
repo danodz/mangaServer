@@ -15,7 +15,11 @@
     },
     "background":
     {
+<<<<<<< HEAD
         "scripts": ["jquery-2.1.1.min.js", "background.js"],
+=======
+        "scripts": ["background.js"],
+>>>>>>> 6c80267a0aa1d81bc3bce763ff5f9b2cb0002211
         "persistent": true
     }
 }

@@ -2,6 +2,7 @@
 -- documentation, see http://haskell.org/cabal/users-guide/
 
 name:                mangaServer
+<<<<<<< HEAD
 version:             0.1.0.0
 -- synopsis:            
 -- description:         
@@ -11,10 +12,17 @@ author:              Erwan LeBlanc
 -- maintainer:          
 -- copyright:           
 -- category:            
+=======
+version:             1.8.0.0
+author:              Erwan LeBlanc
+>>>>>>> 6c80267a0aa1d81bc3bce763ff5f9b2cb0002211
 build-type:          Simple
 cabal-version:       >=1.8
 
 executable mangaServer
   main-is:           Main.hs
+<<<<<<< HEAD
   -- other-modules:       
+=======
+>>>>>>> 6c80267a0aa1d81bc3bce763ff5f9b2cb0002211
   build-depends:     MissingH ==1.2.1.0, cgi ==3001.2.1.0, base ==4.6.*, split ==0.2.*, HTTP ==4000.2.*, blaze-markup ==0.6.*, blaze-html ==0.7.*, happstack-server ==7.3.9, CouchUtils, aeson ==0.6.2.1, text ==0.11.3.1, errors ==1.4.7, time ==1.4.0.1
