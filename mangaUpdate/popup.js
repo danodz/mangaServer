@@ -1,6 +1,5 @@
 page = chrome.extension.getBackgroundPage().mangaPage
 
-<<<<<<< HEAD
 if(page == "Server is down")
 {
     document.write("<div>Server is down</div>");
@@ -32,20 +31,6 @@ document.onreadystatechange = function(state)
 
         divHeight = $(".mangaDiv").height();
         $(".mangaDiv").width("200px");
-=======
-page = page.split("<head>").join('<link href="popup.css" rel="stylesheet" type="text/css">')
-
-page = page.split('<div><input class="newManga"><button onclick="submitNew()">Submit</button></div><div>').join("").split("<a href=\"").join("<a target='_blank' href=\"http://localhost:8000");
-
-document.write(page);
-
-document.onreadystatechange = function(state)
-{
-    console.log()
-    if(document.readyState == 'complete')
-    {
-        divHeight = document.getElementsByTagName("div")[0].clientHeight;
->>>>>>> 6c80267a0aa1d81bc3bce763ff5f9b2cb0002211
         
         document.getElementsByTagName("html")[0].setAttribute("style",  "height:" + divHeight + "px");
         document.getElementsByTagName("body")[0].setAttribute("style", "height:" + divHeight + "px");

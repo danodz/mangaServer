@@ -5,7 +5,6 @@ module MangaDocument where
 import Data.Text (Text)
 import Data.Aeson
 import GHC.Generics
-<<<<<<< HEAD
 import CouchUtils (couchGet)
 import Data.Maybe
 
@@ -35,22 +34,3 @@ nameToIgnore :: IO ([NameToIgnore])
 nameToIgnore = do 
     doc <- couchGet "manga/_design/manga/_view/nameToIgnore" :: IO (Maybe NameToIgnoreView)
     return $ rows $ fromJust doc
-=======
-
-data MangaCountRows = MangaCountRows { rows :: [MangaToCount]
-                                     } deriving (Show, Generic)
-instance FromJSON MangaCountRows
-instance ToJSON MangaCountRows
-
-data MangaToCount = MangaToCount { key :: !Text
-                                    , value :: CountDoc
-                                    } deriving (Show, Generic)
-instance FromJSON MangaToCount
-instance ToJSON MangaToCount
-
-data CountDoc = CountDoc { total :: Int
-                         , unread :: Int
-                         } deriving (Show, Generic)
-instance FromJSON CountDoc
-instance ToJSON CountDoc
->>>>>>> 6c80267a0aa1d81bc3bce763ff5f9b2cb0002211
